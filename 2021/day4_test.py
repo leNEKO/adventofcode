@@ -1,3 +1,4 @@
+from typing import Dict, Iterator, List, Optional, Tuple
 from guts.loader import Loader
 
 
@@ -21,10 +22,11 @@ class Position:
 
 class Grid:
     def __init__(self):
-        self.__rows = []
-        self.__completed = False
+        self.__rows: List[List[Position]] = []
+        self.__winning_line: Optional[List[Position]] = None
+        self.__winning_number: Optional[int] = None
 
-    def add(self, line):
+    def add(self, line: str):
         self.__rows.append(
             [
                 Position(int(number))
@@ -32,26 +34,40 @@ class Grid:
             ]
         )
 
-    def mark(self, number):
+    def check(self, number: int) -> Iterator['Grid']:
         for row in self.__rows:
             for position in row:
                 position.mark(number)
 
-    def check(self):
-        if self.__completed == False:
-            for row in self.rows:
-                if all(position.value for position in row):
-                    self.__completed = True
+        if self.__winning_line is None:
+            for line in [*self.rows, *self.cols]:
+                if all(position.value for position in line):
+                    self.__winning_line = line
+                    self.__winning_number = number
 
-                    yield self, row
-            for col in self.cols:
-                if all(position.value for position in col):
-                    self.__completed = True
-
-                    yield self, col
+                    yield self
 
     @property
-    def remaining_numbers(self):
+    def rows(self) -> List[Position]:
+        return self.__rows
+
+    @property
+    def cols(self) -> List[Position]:
+        return zip(*self.__rows)
+
+    @property
+    def report(self):
+        return {
+            'winning_number' : self.__winning_number,
+            'winning_line': tuple(
+                position.number
+                for position in self.__winning_line
+            ),
+            'result': sum(self.remaining_numbers) * self.__winning_number
+        }
+
+    @property
+    def remaining_numbers(self) -> Tuple[int]:
         return tuple(
             pos.number
             for row in self.rows
@@ -59,79 +75,60 @@ class Grid:
             if pos.value is False
         )
 
-    @property
-    def rows(self):
-        return self.__rows
-
-    @property
-    def cols(self):
-        return zip(*self.__rows)
-
 
 class Solver:
-    def __init__(self, path):
-        self.__loader = Loader(path).read()
-        self.__grids = []
-        self.__winners = []
+    def __init__(self, path: str):
+        self.__path: str = path
+        self.__grids: List[Grid] = []
 
-    def read(self):
-        def head(line):
+    def _load(self):
+        def head(line: str) -> List[int]:
             return [
                 int(number)
                 for number in line.split(',')
             ]
 
-        self._draw = head(
-            next(self.__loader)
+        loader = Loader(self.__path).read()
+
+        self.__draw = head(
+            next(loader)
         )
 
-        for line in self.__loader:
+        for line in loader:
             if line == '':
                 grid = Grid()
                 self.__grids.append(grid)
             else:
                 grid.add(line)
 
-    def process(self):
-        def mark_position_in_grids(self, number):
-            for grid in self._grids:
-                grid.mark(number)
+    def _mark_position_in_grids(self, number):
+        for grid in self.__grids:
+            yield from grid.check(number)
 
-                yield from grid.check()
-
-        for number in self._draw:
-            for win_grid, win_line in mark_position_in_grids(self, number):
-                winning_numbers = tuple(
-                    position.number
-                    for position in win_line
-                )
-
-                self.__winners.append(
-                    (
-                        winning_numbers,
-                        number,
-                        sum(win_grid.remaining_numbers) * number
-                    )
-                )
+    def _process(self):
+        return [
+            winner.report
+            for number in self.__draw
+            for winner in self._mark_position_in_grids(number)
+        ]
 
     @property
-    def result(self):
-        self.read()
-        self.process()
+    def result(self) -> Dict:
+        self._load()
+        winners = self._process()
 
         return {
-            'first': self.__winners[0],
-            'last': self.__winners[-1],
+            'first': winners[0],
+            'last': winners[-1],
         }
 
 
 def test_solver():
-    winning_numbers, number, total = Solver(
-        'day4_input_test.txt').result['first']
+    report = Solver('day4_input_test.txt').result['first']
 
-    assert (14, 21, 17, 24, 4) == winning_numbers
-    assert 24 == number
-    assert 4512 == total
+    assert (14, 21, 17, 24, 4) == report['winning_line']
+    assert 24 == report['winning_number']
+    assert 4512 == report['result']
 
 
 if __name__ == '__main__':
