@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 from guts.loader import Loader
 
 
@@ -21,26 +21,19 @@ class Position:
         return self._value
 
 
-class Line(list):
-    def __init__(self, line: str):
-        [
-            self.append(
-                Position(
-                    int(number)
-                )
-            )
-            for number in line.split()
-        ]
-
-
 class Grid:
     def __init__(self):
-        self._rows: List[Line] = []
+        self._rows: List[tuple[Position]] = []
         self._winning_line: Optional[List[Position]] = None
         self._winning_number: Optional[int] = None
 
-    def add(self, row: Line):
-        self._rows.append(row)
+    def add_row(self, line: str):
+        self._rows.append(
+            tuple(
+                Position(int(number))
+                for number in line.split()
+            )
+        )
 
     def check(self, number: int):
         self._mark(number)
@@ -65,9 +58,9 @@ class Grid:
 
     @property
     def cols(self):
-        return zip(*self._rows)
+        return list(zip(*self._rows))
 
-    def _remaining_positions(self):
+    def _remaining_position(self):
         return tuple(
             pos
             for row in self.rows
@@ -86,7 +79,7 @@ class Grid:
             'result': sum(
                 map(
                     lambda position: position.number,
-                    self._remaining_positions()
+                    self._remaining_position()
                 )
             ) * self._winning_number
         }
@@ -115,9 +108,7 @@ class Solver:
                 grid = Grid()
                 self._grids.append(grid)
             else:
-                grid.add(
-                    Line(line)
-                )
+                grid.add_row(line)
 
     def _process(self):
         return [
