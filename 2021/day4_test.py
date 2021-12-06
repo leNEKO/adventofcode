@@ -1,14 +1,16 @@
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 from guts.loader import Loader
 
 
 class Position:
-    def __init__(self, number):
-        self._number = number
-        self._value = False
+    def __init__(self, number: int):
+        self._number: int = number
+        self._value: bool = False
 
     def mark(self):
         self._value = True
+
+        return self
 
     @property
     def number(self):
@@ -33,16 +35,8 @@ class Grid:
             ]
         )
 
-    def mark(self, number):
-        for row in self._rows:
-            for position in row:
-                if position.number == number:
-                    position.mark()
-
-                    return position
-
-    def check(self, number: int) -> Iterator['Grid']:
-        self.mark(number)
+    def check(self, number: int):
+        self._mark(number)
 
         if self._winning_line is None:
             for line in [*self.rows, *self.cols]:
@@ -52,12 +46,18 @@ class Grid:
 
                     yield self
 
+    def _mark(self, number: int):
+        for row in self._rows:
+            for position in row:
+                if position.number == number:
+                    return position.mark()
+
     @property
-    def rows(self) -> List[Position]:
+    def rows(self):
         return self._rows
 
     @property
-    def cols(self) -> List[Position]:
+    def cols(self):
         return zip(*self._rows)
 
     def _remaining_numbers(self) -> Tuple[int]:
@@ -82,8 +82,8 @@ class Grid:
 
 class Solver:
     def __init__(self, path: str):
-        self.__path: str = path
-        self.__grids: List[Grid] = []
+        self._path: str = path
+        self._grids: List[Grid] = []
 
     def _load(self):
         def head(line: str) -> List[int]:
@@ -92,24 +92,24 @@ class Solver:
                 for number in line.split(',')
             ]
 
-        loader = Loader(self.__path).read()
+        loader = Loader(self._path).read()
 
-        self.__draw = head(
+        self.__turns = head(
             next(loader)
         )
 
         for line in loader:
             if line == '':
                 grid = Grid()
-                self.__grids.append(grid)
+                self._grids.append(grid)
             else:
                 grid.add_row(line)
 
     def _process(self):
         return [
             winner.expose
-            for number in self.__draw
-            for grid in self.__grids
+            for number in self.__turns
+            for grid in self._grids
             for winner in grid.check(number)
         ]
 
