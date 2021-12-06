@@ -4,29 +4,29 @@ from guts.loader import Loader
 
 class Position:
     def __init__(self, number):
-        self.__number = number
-        self.__value = False
+        self._number = number
+        self._value = False
 
     def mark(self):
-        self.__value = True
+        self._value = True
 
     @property
     def number(self):
-        return self.__number
+        return self._number
 
     @property
     def value(self):
-        return self.__value
+        return self._value
 
 
 class Grid:
     def __init__(self):
-        self.__rows: List[List[Position]] = []
-        self.__winning_line: Optional[List[Position]] = None
-        self.__winning_number: Optional[int] = None
+        self._rows: List[List[Position]] = []
+        self._winning_line: Optional[List[Position]] = None
+        self._winning_number: Optional[int] = None
 
-    def add(self, line: str):
-        self.__rows.append(
+    def add_row(self, line: str):
+        self._rows.append(
             [
                 Position(int(number))
                 for number in line.split()
@@ -34,7 +34,7 @@ class Grid:
         )
 
     def mark(self, number):
-         for row in self.__rows:
+        for row in self._rows:
             for position in row:
                 if position.number == number:
                     position.mark()
@@ -44,41 +44,40 @@ class Grid:
     def check(self, number: int) -> Iterator['Grid']:
         self.mark(number)
 
-        if self.__winning_line is None:
+        if self._winning_line is None:
             for line in [*self.rows, *self.cols]:
                 if all(position.value for position in line):
-                    self.__winning_line = line
-                    self.__winning_number = number
+                    self._winning_line = line
+                    self._winning_number = number
 
                     yield self
 
     @property
     def rows(self) -> List[Position]:
-        return self.__rows
+        return self._rows
 
     @property
     def cols(self) -> List[Position]:
-        return zip(*self.__rows)
+        return zip(*self._rows)
 
-    @property
-    def report(self):
-        return {
-            'winning_number' : self.__winning_number,
-            'winning_line': tuple(
-                position.number
-                for position in self.__winning_line
-            ),
-            'result': sum(self.remaining_numbers) * self.__winning_number
-        }
-
-    @property
-    def remaining_numbers(self) -> Tuple[int]:
+    def _remaining_numbers(self) -> Tuple[int]:
         return tuple(
             pos.number
             for row in self.rows
             for pos in row
             if pos.value is False
         )
+
+    @property
+    def expose(self):
+        return {
+            'winning_number': self._winning_number,
+            'winning_line': tuple(
+                position.number
+                for position in self._winning_line
+            ),
+            'result': sum(self._remaining_numbers()) * self._winning_number
+        }
 
 
 class Solver:
@@ -104,11 +103,11 @@ class Solver:
                 grid = Grid()
                 self.__grids.append(grid)
             else:
-                grid.add(line)
+                grid.add_row(line)
 
     def _process(self):
         return [
-            winner.report
+            winner.expose
             for number in self.__draw
             for grid in self.__grids
             for winner in grid.check(number)
