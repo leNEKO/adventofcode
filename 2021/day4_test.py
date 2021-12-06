@@ -21,19 +21,26 @@ class Position:
         return self._value
 
 
+class Line(list):
+    def __init__(self, line: str):
+        [
+            self.append(
+                Position(
+                    int(number)
+                )
+            )
+            for number in line.split()
+        ]
+
+
 class Grid:
     def __init__(self):
-        self._rows: List[List[Position]] = []
+        self._rows: List[Line] = []
         self._winning_line: Optional[List[Position]] = None
         self._winning_number: Optional[int] = None
 
-    def add_row(self, line: str):
-        self._rows.append(
-            [
-                Position(int(number))
-                for number in line.split()
-            ]
-        )
+    def add(self, row: Line):
+        self._rows.append(row)
 
     def check(self, number: int):
         self._mark(number)
@@ -60,9 +67,9 @@ class Grid:
     def cols(self):
         return zip(*self._rows)
 
-    def _remaining_numbers(self) -> Tuple[int]:
+    def _remaining_position(self):
         return tuple(
-            pos.number
+            pos
             for row in self.rows
             for pos in row
             if pos.value is False
@@ -76,7 +83,12 @@ class Grid:
                 position.number
                 for position in self._winning_line
             ),
-            'result': sum(self._remaining_numbers()) * self._winning_number
+            'result': sum(
+                map(
+                    lambda position: position.number,
+                    self._remaining_position()
+                )
+            ) * self._winning_number
         }
 
 
@@ -103,7 +115,9 @@ class Solver:
                 grid = Grid()
                 self._grids.append(grid)
             else:
-                grid.add_row(line)
+                grid.add(
+                    Line(line)
+                )
 
     def _process(self):
         return [
