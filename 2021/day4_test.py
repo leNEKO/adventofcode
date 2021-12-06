@@ -67,7 +67,7 @@ class Grid:
     def cols(self):
         return zip(*self._rows)
 
-    def _remaining_position(self):
+    def _remaining_positions(self):
         return tuple(
             pos
             for row in self.rows
@@ -86,7 +86,7 @@ class Grid:
             'result': sum(
                 map(
                     lambda position: position.number,
-                    self._remaining_position()
+                    self._remaining_positions()
                 )
             ) * self._winning_number
         }
