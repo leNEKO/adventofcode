@@ -22,6 +22,7 @@ class Position:
 class Grid:
     def __init__(self):
         self._rows = []
+        self._win = False
 
     def add(self, line):
         self._rows.append(
@@ -37,12 +38,15 @@ class Grid:
                 position.mark(number)
 
     def check(self):
-        for row in self.rows:
-            if all(position.value for position in row):
-                yield self, row
-        for col in self.cols:
-            if all(position.value for position in col):
-                yield self, col
+        if self._win == False:
+            for row in self.rows:
+                if all(position.value for position in row):
+                    self._win = True
+                    yield self, row
+            for col in self.cols:
+                if all(position.value for position in col):
+                    self._win = True
+                    yield self, col
         return
 
     @property
@@ -54,7 +58,6 @@ class Grid:
             if pos.value is False
         )
 
-
     @property
     def rows(self):
         return self._rows
@@ -62,6 +65,7 @@ class Grid:
     @property
     def cols(self):
         return zip(*self._rows)
+
 
 class Solver:
     def __init__(self, path):
@@ -88,34 +92,47 @@ class Solver:
             else:
                 grid.add(line)
 
-    def mark(self, number):
+    def mark_in_grids(self, number):
         for grid in self._grids:
             grid.mark(number)
             yield from grid.check()
 
-    @property
-    def result(self):
-        self.read()
-
+    def process(self):
         for number in self._draw:
-            for win_grid, win_line in self.mark(number):
+            for win_grid, win_line in self.mark_in_grids(number):
                 winning_numbers = tuple(
                     position.number
                     for position in win_line
                 )
 
-                return (
+                yield (
                     winning_numbers,
                     number,
                     sum(win_grid.remaining_numbers) * number
                 )
 
+    @property
+    def result(self):
+        self.read()
+
+        winners = list(
+            self.process()
+        )
+
+        return {
+            'first': winners[0],
+            'last': winners[-1],
+        }
+
+
 def test_solve():
-    winning_numbers, number, total = Solver('day4_input_test.txt').result
+    winning_numbers, number, total = Solver(
+        'day4_input_test.txt').result['first']
 
     assert (14, 21, 17, 24, 4) == winning_numbers
     assert 24 == number
     assert 4512 == total
+
 
 if __name__ == '__main__':
     print(
