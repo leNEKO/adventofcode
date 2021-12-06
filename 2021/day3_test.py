@@ -41,6 +41,7 @@ class Solver:
                     if line[k] == commons[k][key][0]
                 ]
 
+                # ugly hack :(
                 if len(matrix) == 2:
                     for m in matrix:
                         if m[-1] == final:
