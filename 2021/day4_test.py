@@ -7,9 +7,8 @@ class Position:
         self.__number = number
         self.__value = False
 
-    def mark(self, number):
-        if number == self.__number:
-            self.__value = True
+    def mark(self):
+        self.__value = True
 
     @property
     def number(self):
@@ -34,10 +33,16 @@ class Grid:
             ]
         )
 
-    def check(self, number: int) -> Iterator['Grid']:
-        for row in self.__rows:
+    def mark(self, number):
+         for row in self.__rows:
             for position in row:
-                position.mark(number)
+                if position.number == number:
+                    position.mark()
+
+                    return position
+
+    def check(self, number: int) -> Iterator['Grid']:
+        self.mark(number)
 
         if self.__winning_line is None:
             for line in [*self.rows, *self.cols]:
@@ -101,15 +106,12 @@ class Solver:
             else:
                 grid.add(line)
 
-    def _mark_position_in_grids(self, number):
-        for grid in self.__grids:
-            yield from grid.check(number)
-
     def _process(self):
         return [
             winner.report
             for number in self.__draw
-            for winner in self._mark_position_in_grids(number)
+            for grid in self.__grids
+            for winner in grid.check(number)
         ]
 
     @property
