@@ -13,7 +13,7 @@ class Solver:
         return range(min(b,e),max(b,e) +1)
 
     def draw_line(self, command: str):
-        x1, y1, x2, y2 = [
+        x0, y0, x1, y1 = [
             int(value)
             for value in re.match(
                 (
@@ -26,12 +26,41 @@ class Solver:
             ).groups()
         ]
 
-        if x1 == x2:
-            for y in self.my_range(y1, y2):
-                self._grid[(x1, y)] +=1
-        if y1 == y2:
-            for x in self.my_range(x1, x2):
-                self._grid[(x, y1)] +=1
+        # steep
+        steep = abs(y1 - y0) > abs(x1 - x0)
+        if steep:
+            x0, y0 = y0, x0
+            x1, y1 = y1, x1
+
+        # endpoint swap
+        if x0 > x1:
+            x0, x1 = x1, x0
+            y0, y1 = y1, y0
+
+        # ystep
+        if y0 < y1:
+            ystep = 1
+        else:
+            ystep = -1
+
+        # init
+        deltax = x1 - x0
+        deltay = abs(y1 - y0)
+        error = -deltax / 2
+        y = y0
+
+        # main loop
+        for x in range(x0, x1 + 1): # We add 1 to x1 so that the range includes x1
+            if steep:
+                self._grid[(y, x)] += 1
+            else:
+                self._grid[(x, y)] += 1
+            error = error + deltay
+            if error > 0:
+                y = y + ystep
+                error = error - deltax
+
+
 
     def _load(self):
         loader = Loader(self._path).read()
@@ -70,7 +99,7 @@ class Solver:
 def test_solver():
     actual = Solver('day5_input_test.txt').result
 
-    assert 5 == actual
+    assert 12 == actual
 
 
 if __name__ == '__main__':
