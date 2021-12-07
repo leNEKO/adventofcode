@@ -8,24 +8,9 @@ class Solver:
         self._path: str = path
         self._grid = defaultdict(lambda: 0)
 
+    # Bresenham's algo
     @staticmethod
-    def my_range(b, e):
-        return range(min(b,e),max(b,e) +1)
-
-    def draw_line(self, command: str):
-        x0, y0, x1, y1 = [
-            int(value)
-            for value in re.match(
-                (
-                    r'(?P<x1>\d+),'
-                    r'(?P<y1>\d+) -> '
-                    r'(?P<x2>\d+),'
-                    r'(?P<y2>\d+)'
-                ),
-                command
-            ).groups()
-        ]
-
+    def bresenham_line(x0, y0, x1, y1):
         # steep
         steep = abs(y1 - y0) > abs(x1 - x0)
         if steep:
@@ -52,14 +37,34 @@ class Solver:
         # main loop
         for x in range(x0, x1 + 1): # We add 1 to x1 so that the range includes x1
             if steep:
-                self._grid[(y, x)] += 1
+                yield (y,x)
             else:
-                self._grid[(x, y)] += 1
+                yield (x,y)
             error = error + deltay
             if error > 0:
                 y = y + ystep
                 error = error - deltax
 
+    @staticmethod
+    def decode_command(command: str):
+        return tuple(
+            int(value)
+            for value in re.match(
+                (
+                    r'(?P<x1>\d+),'
+                    r'(?P<y1>\d+) -> '
+                    r'(?P<x2>\d+),'
+                    r'(?P<y2>\d+)'
+                ),
+                command
+            ).groups()
+        )
+
+    def draw_line(self, command: str):
+        for position in self.bresenham_line(
+            *self.decode_command(command)
+        ):
+            self._grid[position] += 1
 
 
     def _load(self):
