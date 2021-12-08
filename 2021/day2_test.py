@@ -76,11 +76,11 @@ class Solver:
         )
 
 def test_solver_part_one():
-    assert 150 == Solver('day2_test.txt').part_one()
+    assert 150 == Solver('day2_input_test.txt').part_one()
 
 def test_solver_part_two():
-    assert 900 == Solver('day2_test.txt').part_two()
+    assert 900 == Solver('day2_input_test.txt').part_two()
 
 if __name__ == '__main__':
-    result = Solver(INPUT_PATH).result
+    result = Solver('day2_input.txt').result
     print(result)

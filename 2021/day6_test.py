@@ -1,23 +1,23 @@
 from collections import deque
 from guts.loader import Loader
+from pytest import mark
 
-class Population():
+class Population(deque):
     def __init__(self, data: list):
-        self._counter = deque(
-            0
-            for _ in range(9)
+        super().__init__(
+            0 for _ in range(9)
         )
-        for fish in data:
-            self._counter[fish] += 1
+        for value in data:
+            self[value] += 1
 
     def iterate(self):
-        generation = self._counter.popleft()
-        self._counter[6] += generation
-        self._counter.append(generation)
+        generation = self.popleft()
+        self[6] += generation
+        self.append(generation)
 
     @property
     def total(self):
-        return sum(self._counter)
+        return sum(self)
 
 def process(days, init):
     population = Population(init)
@@ -26,13 +26,15 @@ def process(days, init):
 
     return population.total
 
-def test_part_one():
-    init = [3,4,3,1,2]
-    assert 26 == process(18, init)
+init = [3,4,3,1,2]
+dataprovider = [
+    (init, 18, 26),
+    (init, 256, 26_984_457_539),
+]
 
-def test_part_two():
-    init = [3,4,3,1,2]
-    assert 26984457539 == process(256, init)
+@mark.parametrize('init, days, fishes', dataprovider)
+def test_process(init, days, fishes):
+    assert fishes == process(days, init)
 
 if __name__ == '__main__':
     init = [

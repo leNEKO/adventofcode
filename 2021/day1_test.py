@@ -1,9 +1,6 @@
 from collections import deque
-from functools import reduce
 from guts.loader import Loader
-
-INPUT_PATH = 'day1.txt'
-
+from pytest import mark
 
 class IntDeque(deque):
     def __init__(self, size: int = 1):
@@ -49,15 +46,15 @@ class Solver:
             self.process(3),
         )
 
-
-def test_solver_simple():
-    assert Solver('day1_test.txt').process(1) == 7
-
-
-def test_solver_window():
-    assert Solver('day1_test.txt').process(3) == 5
+dataprovider = [
+    (7,1),
+    (5,3),
+]
+@mark.parametrize('expected, window', dataprovider)
+def test_solver(expected, window):
+    assert Solver('day1_input_test.txt').process(window) == expected
 
 
 if __name__ == '__main__':
-    result = Solver(INPUT_PATH).result
+    result = Solver('day1_input.txt').result
     print(result)
