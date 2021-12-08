@@ -1,7 +1,7 @@
-from functools import reduce
 from collections import defaultdict
 import re
 from guts.loader import Loader
+
 
 class Solver:
     def __init__(self, path: str):
@@ -35,11 +35,11 @@ class Solver:
         y = y0
 
         # main loop
-        for x in range(x0, x1 + 1): # We add 1 to x1 so that the range includes x1
+        for x in range(x0, x1 + 1):  # We add 1 to x1 so that the range includes x1
             if steep:
-                yield (y,x)
+                yield (y, x)
             else:
-                yield (x,y)
+                yield (x, y)
             error = error + deltay
             if error > 0:
                 y = y + ystep
@@ -66,7 +66,6 @@ class Solver:
         ):
             self._grid[position] += 1
 
-
     def _load(self):
         loader = Loader(self._path).read()
         for command in loader:
@@ -76,16 +75,16 @@ class Solver:
         keys = self._grid.keys()
 
         return (
-            max(x for x,_ in keys),
-            max(y for _,y in keys),
+            max(x for x, _ in keys),
+            max(y for _, y in keys),
         )
 
     def _display(self):
         lx, ly = self._bound()
 
         for y in range(lx + 1):
-            for x in range(ly +1):
-                pos = (x,y)
+            for x in range(ly + 1):
+                pos = (x, y)
                 v = self._grid[pos]
                 print(v if v else '.', end='')
             print()
@@ -100,6 +99,7 @@ class Solver:
             total += (1 if value > 1 else 0)
 
         return total
+
 
 def test_solver():
     actual = Solver('day5_input_test.txt').result

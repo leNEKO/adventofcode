@@ -1,7 +1,8 @@
 from typing import Counter
 from guts.loader import Loader
 
-INPUT_PATH='day3.txt'
+INPUT_PATH = 'day3.txt'
+
 
 class Solver:
     def __init__(self, path):
@@ -13,7 +14,7 @@ class Solver:
     def most_commons_in_column(self, matrix):
         return [
             Counter(column).most_common()
-            for column in list(zip(*matrix)) # rotated
+            for column in list(zip(*matrix))  # rotated
         ]
 
     @property
@@ -62,6 +63,7 @@ class Solver:
             'life support rating': self.life_support_rating,
         }
 
+
 def test_life_support_rating():
     expected = {
         'power comsuption': 198,
@@ -71,9 +73,10 @@ def test_life_support_rating():
             'total': 230,
         },
     }
-    actual = Solver('day3_test.txt').result;
+    actual = Solver('day3_test.txt').result
 
     assert expected == actual
+
 
 if __name__ == '__main__':
     result = Solver(INPUT_PATH).result

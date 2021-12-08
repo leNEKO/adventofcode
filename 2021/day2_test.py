@@ -2,7 +2,7 @@ from enum import Enum, auto
 from guts.loader import Loader
 
 
-INPUT_PATH='day2.txt'
+INPUT_PATH = 'day2.txt'
 
 
 class Action(Enum):
@@ -10,10 +10,13 @@ class Action(Enum):
     DOWN = 'down'
     FORWARD = 'forward'
 
+
 class Dim(Enum):
     HORIZ = auto()
     DEPTH = auto()
     AIM = auto()
+
+
 class Solver:
     def __init__(self, path):
         self._loader = Loader(path)
@@ -35,10 +38,12 @@ class Solver:
 
     def part_one(self):
         def process(coord, action, value):
-            def up(coord,value):
+            def up(coord, value):
                 coord[Dim.DEPTH] -= value
+
             def down(coord, value):
                 coord[Dim.DEPTH] += value
+
             def forward(coord, value):
                 coord[Dim.HORIZ] += value
 
@@ -52,10 +57,12 @@ class Solver:
 
     def part_two(self):
         def process(coord, action, value):
-            def up(coord,value):
+            def up(coord, value):
                 coord[Dim.AIM] -= value
+
             def down(coord, value):
                 coord[Dim.AIM] += value
+
             def forward(coord, value):
                 coord[Dim.HORIZ] += value
                 coord[Dim.DEPTH] += value * coord[Dim.AIM]
@@ -75,11 +82,14 @@ class Solver:
             self.part_two(),
         )
 
+
 def test_solver_part_one():
     assert 150 == Solver('day2_input_test.txt').part_one()
 
+
 def test_solver_part_two():
     assert 900 == Solver('day2_input_test.txt').part_two()
+
 
 if __name__ == '__main__':
     result = Solver('day2_input.txt').result
