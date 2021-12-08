@@ -5,7 +5,7 @@ from guts.loader import Loader
 INPUT_PATH = 'day1.txt'
 
 
-class IntDeQueue(deque):
+class IntDeque(deque):
     def __init__(self, size: int = 1):
         self._size = size
 
@@ -28,9 +28,8 @@ class Solver:
             yield int(num)
 
     def process(self, window: int = 1):
-        q = IntDeQueue(window)
+        q = IntDeque(window)
 
-        # don't count first occurence
         count = 0
         previous = 0
 
