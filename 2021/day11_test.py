@@ -9,6 +9,9 @@ class Octopus:
         self._value = value
         self._has_flashed = False
 
+    def __repr__(self):
+        return str(self._value)
+
     def set_neighboor(self, neighboor):
         self._neighboor = neighboor
 
@@ -17,16 +20,18 @@ class Octopus:
 
     def step(self):
         if self._has_flashed:
-            yield 0
+            return 0
 
         self._value += 1
+
         if self._value > 9:
             self._value = 0
             self._has_flashed = True
             yield 1
 
             for n in self._neighboor:
-                yield from n.step()
+                if n is not None:
+                    yield from n.step()
 
 
 class Grid(dict):
@@ -46,7 +51,7 @@ class Grid(dict):
             for position, octopus in self.items():
                 if position.y != y:
                     yield "\n"
-                yield str(octopus._value)
+                yield str(octopus)
                 y = position.y
         return ''.join(
             display()
@@ -78,10 +83,11 @@ class Grid(dict):
     def step(self):
         for octopus in self.values():
             yield from octopus.step()
-            print(self)
-            print()
         for octopus in self.values():
             octopus.reset()
+
+        print(self)
+        print()
 
 class Solver:
     def step(self, matrix):
@@ -90,6 +96,11 @@ class Solver:
 
         return str(grid).split()
 
+    def process(self, path, steps):
+        grid = Grid(Loader(path).read())
+
+        for _ in range(steps):
+            yield from grid.step()
 
 def test_solver():
     solver = Solver()
@@ -122,6 +133,12 @@ def test_solver():
         '45654',
     ]
 
+def test_process():
+    solver = Solver()
+
+    r = solver.process('day11_input_test.txt', 100)
+    assert 1656 == sum(r)
+
 
 if __name__ == '__main__':
-    test_solver()
+    test_process()
