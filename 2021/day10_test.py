@@ -1,5 +1,4 @@
 from enum import Enum
-from math import ceil, floor
 from guts.loader import Loader
 
 class Symbols(Enum):
