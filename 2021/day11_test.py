@@ -7,14 +7,9 @@ Position = namedtuple('Position', ('x', 'y'))
 
 
 class Octopus:
-    DISPLAY_MAP = '🌕🌖🌗🌘🌑🌑🌑🌑🌑🌓'
-
     def __init__(self, value):
         self._value = value
         self._has_flashed = False
-
-    def __repr__(self):
-        return self.DISPLAY_MAP[self._value]
 
     def set_neighborhood(self, neighborhood):
         self._neighborhood = neighborhood
@@ -24,7 +19,7 @@ class Octopus:
 
     def flash(self):
         self._value = 0
-        self._has_flashed = True
+        self._has_flashed = True # only once per step
         yield 1
 
         for n in self._neighborhood:
@@ -41,6 +36,7 @@ class Octopus:
 
 
 class Grid(dict):
+    DISPLAY_MAP = '█▓▒░  ░▒▓█'
     OFFSET_MAP = [
         Position(x, y)
         for x in (-1, 0, 1)
@@ -50,8 +46,9 @@ class Grid(dict):
 
     def __init__(self, matrix):
         self.load(matrix)
-        self.setup()
-        self._counter = 0
+        self.setup_neighborhood()
+
+        self._step = 0
 
     def __repr__(self):
         def display():
@@ -59,18 +56,25 @@ class Grid(dict):
             for position, octopus in self.items():
                 if position.y != y:
                     yield "\n"
-                yield str(octopus)
                 y = position.y
+
+                # less flash
+                diff = (self._step) % 10
+                yield self.DISPLAY_MAP[octopus._value - diff] * 2
 
         return ''.join(
             display()
         )
 
     def __hash__(self):
-        return hash(str(self))
+        return hash(
+            ''.join(
+                str(octo._value)
+                for octo in self.values()
+            )
+        )
 
     def load(self, matrix):
-        # init grid
         [
             self.update(
                 {
@@ -83,7 +87,7 @@ class Grid(dict):
             for x, value in enumerate(row)
         ]
 
-    def setup(self):
+    def setup_neighborhood(self):
         for position, octopus in self.items():
             positions = [
                 Position(
@@ -105,7 +109,7 @@ class Grid(dict):
             octopus.set_neighborhood(neighborhood)
 
     def step(self):
-        self._counter += 1
+        self._step += 1
 
         for octopus in self.values():
             yield from octopus.step()
@@ -115,23 +119,14 @@ class Grid(dict):
 
 
 class Solver:
-    def step(self, matrix):
-        grid = Grid(matrix)
-        grid.step()
-
-        return str(grid).split()
-
     def part_a(self, path, steps):
         grid = Grid(Loader(path).read())
 
         for _ in range(steps):
             yield from grid.step()
 
-    def part_b(self, path):
+    def part_b(self, path, visual=True):
         lines = Loader(path).read()
-        return self.simultaneous(lines)
-
-    def simultaneous(self, lines):
         grid = Grid(lines)
 
         hashes = set()
@@ -142,24 +137,30 @@ class Solver:
             if key in hashes:
                 return 1
             hashes.add(key)
+
             return 0
 
-        while True:
+        def display(fps=60):
             system('clear')
+            print(grid)
+            sleep(1/fps)
+
+        while True:
 
             r = sum(grid.step())
-            print(grid)
+
+            if visual:
+                display()
 
             if r >= len(grid):
-                return grid._counter
+                pass
+                return grid._step
 
             loop += loop_detect()
 
-            print(loop)
             if loop > 9:
+                pass
                 return 'infinite loop'
-
-            sleep(1/60)
 
 
 def test_process():
@@ -171,18 +172,9 @@ def test_process():
 
 if __name__ == '__main__':
     solver = Solver()
-
-    def random_lines(w, h):
-        from random import choice
-        values = '0123456789'
-        for _ in range(h):
-            yield ''.join(
-                [
-                    choice(values)
-                    for _ in range(w)
-                ]
-            )
+    path = 'day11_input.txt'
 
     print(
-        solver.simultaneous(random_lines(11, 11))
+        sum(solver.part_a(path, 100)),
+        solver.part_b(path)
     )
