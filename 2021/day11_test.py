@@ -19,7 +19,7 @@ class Octopus:
 
     def flash(self):
         self._value = 0
-        self._has_flashed = True # only once per step
+        self._has_flashed = True  # only once per step
         yield 1
 
         for n in self._neighborhood:
@@ -146,7 +146,6 @@ class Solver:
             sleep(1/fps)
 
         while True:
-
             r = sum(grid.step())
 
             if visual:
