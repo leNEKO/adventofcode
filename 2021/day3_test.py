@@ -1,7 +1,7 @@
 from typing import Counter
 from guts.loader import Loader
 
-INPUT_PATH = 'day3.txt'
+INPUT_PATH = 'day3_input.txt'
 
 
 class Solver:
@@ -50,10 +50,11 @@ class Solver:
 
         o2 = get_rate(0, '1')
         co2 = get_rate(-1, '0')
+
         return {
             'oxygen generator': o2,
             'CO2 scrubber': co2,
-            'total': o2 * co2,
+            # 'total': o2 * co2,
         }
 
     @property
@@ -73,7 +74,7 @@ def test_life_support_rating():
             'total': 230,
         },
     }
-    actual = Solver('day3_test.txt').result
+    actual = Solver('day3_input_test.txt').result
 
     assert expected == actual
 
